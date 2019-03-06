@@ -51,7 +51,7 @@
 	</CheckButton>
 
 	<Frame name="TankBuddyFrame" frameStrata="BACKGROUND" toplevel="true" enableMouse="true" movable="true" parent="UIParent" hidden="true">
-		<Size><AbsDimension x="384" y="512"/></Size>
+		<Size><AbsDimension x="384" y="550"/></Size>
 		<Scripts>
 			<OnLoad>
 				TB_OnLoad();
@@ -163,6 +163,18 @@
 							<OnClick>TB_toggleStatus();</OnClick>
 						</Scripts>
 					</CheckButton>
+					<CheckButton name="TB_EnableMakeMeStupidCheckButton" inherits="OptionsCheckButtonTemplate" checked="true">
+						<Anchors>
+							<Anchor point="TOPLEFT">
+								<Offset>
+									<AbsDimension x="30" y="-75"></AbsDimension>
+								</Offset>
+							</Anchor>
+						</Anchors>
+						<Scripts>
+							<OnClick>TB_toggleMakeMeStupidStatus();</OnClick>
+						</Scripts>
+					</CheckButton>
 					<CheckButton name="TB_EnableSalvationCheckButton" inherits="OptionsCheckButtonTemplate" checked="true">
 						<Anchors>
 							<Anchor point="TOPLEFT">
@@ -202,6 +214,15 @@
 								</Anchor>
 							</Anchors>
 						</FontString>
+						<FontString name="EnableMakeMeStupidText" inherits="GameFontNormalSmall" text="TB_GUI_EnableMakeMeStupid">
+							<Anchors>
+								<Anchor point="TOPLEFT">
+									<Offset>
+										<AbsDimension x="65" y="-87"/>
+									</Offset>
+								</Anchor>
+							</Anchors>
+						</FontString>
 						<FontString name="EnableSalvText" inherits="GameFontNormalSmall" text="TB_GUI_EnableSalvation">
 							<Anchors>
 								<Anchor point="TOPLEFT">
@@ -215,7 +236,7 @@
 							<Anchors>
 								<Anchor point="TOPLEFT">
 									<Offset>
-										<AbsDimension x="240" y="-80"/>
+										<AbsDimension x="240" y="-82"/>
 									</Offset>
 								</Anchor>
 							</Anchors>

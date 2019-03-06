@@ -1,10 +1,9 @@
-# Tankbuddy
+# Extended Tankbuddy
 
 Tankbuddy Addon for vanilla WoW 1.12.1
-Based on: https://wow.curseforge.com/projects/tank-buddy
+Based on: https://github.com/stesve/Tankbuddy
 
-I have been using Tankbuddy for a while, and decided some time ago to make my own modification to the addon.
-
-This version tells if the mob that resisted taunt had a raid icon.
-
-Example:- My taunt has been resisted by CROSS Firesworn CROSS ! -
+Modifications on this Version:
+- supports Death Wish
+- Make Me Stupid is back (auto removes Spirit and Int Buffs)
+- Announcing Raid Icons on resists (Example:- My taunt has been resisted by CROSS Firesworn CROSS ! -)
