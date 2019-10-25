@@ -1,7 +1,12 @@
 --[[
-- Extended Tank Buddy
-- Author: sahne123
-- Contact: https://github.com/sahne123
+- Classic Tank Buddy v3.0.1
+- Author: bjornenalfa
+- Contact: https://github.com/bjornenalfa
+-
+- Based on:
+-   Extended Tank Buddy
+-   Author: sahne123
+-   Contact: https://github.com/sahne123
 -
 - Based on:
 -   Tank Buddy 2.0.1
@@ -17,7 +22,7 @@
 
 
 -- Globals
-TBSettingsCharRealm = UnitName("player") .. "@" .. GetCVar("realmName");
+TBSettingsCharRealm = UnitName("player") .. "@" .. GetRealmName();
 TB_Channels = {
 	{ "CTRaid", TB_GUI_Channel_Ctraid, "MS " },
 	{ "RaidWarning", TB_GUI_Channel_RaidWarning, "RAID_WARNING" },
@@ -37,6 +42,15 @@ TB_intellectfound1 = false
 TB_spiritfound = false
 TB_spiritfound1 = false
 TB_spiritfound2 = false
+TB_debug = false
+
+local function starts_with(str, start)
+   return str:sub(1, #start) == start
+end
+
+local function ends_with(str, ending)
+   return ending == "" or str:sub(-#ending) == ending
+end
 
 function TB_OnLoad()
 	_, englishClass = UnitClass("player");
@@ -47,6 +61,7 @@ function TB_OnLoad()
 			{ TB_GUI_MB, "Interface\\Icons\\Ability_Warrior_PunishingBlow" },
 			{ TB_GUI_LS, "Interface\\Icons\\Spell_Holy_AshesToAshes" },
 			{ TB_GUI_SW, "Interface\\Icons\\Ability_Warrior_ShieldWall" },
+      { TB_GUI_CS, "Interface\\Icons\\Ability_BullRush" },
 			{ TB_GUI_DW, "Interface\\Icons\\Spell_Shadow_DeathPact" },
 			{ TB_GUI_LG, "Interface\\Icons\\INV_Misc_Gem_Pearl_05" }
 		};
@@ -56,14 +71,13 @@ function TB_OnLoad()
 		TB_Tabs = {
 			{ TB_GUI_General, "Interface\\Icons\\Spell_Shadow_SoulGem"},
 			{ TB_GUI_Growl, "Interface\\Icons\\Ability_Physical_Taunt" },
-			{ TB_GUI_LG, "Interface\\Icons\\INV_Misc_Gem_Pearl_05" }
+      { TB_GUI_CR, "Interface\\Icons\\Ability_Druid_ChallangingRoar" }
 		};
 		TB_TankForm = 1;	--Bear form has Shapeshiftform number 1
 		SalvDefensiveBearText:SetText(TB_GUI_SalvationBear);
 	else
 		TB_Tabs = {
-			{ TB_GUI_General, "Interface\\Icons\\Spell_Shadow_SoulGem"},
-			{ TB_GUI_LG, "Interface\\Icons\\INV_Misc_Gem_Pearl_05" }
+			{ TB_GUI_General, "Interface\\Icons\\Spell_Shadow_SoulGem"}
 		};
 		TB_TankForm = nil;
 		TB_DefensiveBearCheckButton:Hide();
@@ -97,9 +111,9 @@ function TB_OnLoad()
 	TB_ButtonPaste:Disable();		--The paste-button is disabled until the copy-button has been clicked
 end
 
-function TB_Tab_OnClick(id)
+function TB_Tab_OnClick(id, self)
 	if ( not id ) then
-		id = this:GetID();
+		id = self:GetID();
 	end
 	TB_SetTab(id);
 end
@@ -144,11 +158,11 @@ function TB_SetChannels()
 	end
 end
 
-function TB_Channels_OnClick()
+function TB_Channels_OnClick(self)
 	for i = 1, getn(TB_Modes), 1 do
 		for j = 1, getn(TB_Channels), 1 do
-			if (this:GetName() == "TB_" .. TB_Modes[i][1] .. TB_Channels[j][1] .. "CheckButton") then
-				local Checked = this:GetChecked();
+			if (self:GetName() == "TB_" .. TB_Modes[i][1] .. TB_Channels[j][1] .. "CheckButton") then
+				local Checked = self:GetChecked();
 				TBSettings[TBSettingsCharRealm].Announcements[TB_Tabs[TankBuddyFrame.selectedTab][1]][TB_Modes[i][2]][TB_Channels[j][2]] = Checked;
 				if (TB_Channels[j][1] == "Custom") then
 					if (Checked) then
@@ -165,55 +179,82 @@ end
 function TB_OnEvent(event)
  	local TBAbility = "";
 	-- Execute this function whenever you get a string in the self damage spells section, or when variables are loaded.
-	if(event == "CHAT_MSG_SPELL_SELF_DAMAGE") then
-		if (englishClass == "WARRIOR") then
-			if (string.find(arg1, TB_tauntLine)) then 									-- Checks if your taunt was resisted
-				TBAbility = TB_GUI_Taunt;
-			elseif (string.find(arg1, TB_mb)) then			-- Checks if the string has the words "Mocking Blow"
-				local mbHit = string.find(arg1, TB_mbHitLine);					-- Checks if your mocking blow was hit
-				if (not mbHit) then			-- If your mocking blow didnt hit, then do ..
-					TBAbility = TB_GUI_MB;
-				end
-			end
-		elseif (englishClass == "DRUID") then
-			if (string.find(arg1, TB_growlLine)) then 									-- Checks if your taunt was resisted
-				TBAbility = TB_GUI_Growl;
-			end
-		end
-
-	elseif(event == "CHAT_MSG_SPELL_PERIODIC_SELF_BUFFS") then
-		if (englishClass == "WARRIOR") then
-			if (string.find(arg1, TB_sw)) then
-				TBAbility = TB_GUI_SW;
-			elseif (string.find(arg1, TB_ls)) then
-				TBAbility = TB_GUI_LS;
-			end
-		end
-		if (string.find(arg1, TB_lg)) then
-			TBAbility = TB_GUI_LG;
-		end
-		if(TBSettings[TBSettingsCharRealm].MakeMeStupidStatus) then
-            if arg1 == TB_intel or arg1 == TB_intel1 then
-                TB_intellectfound = true
-            elseif arg1 == TB_intel2 then
-                TB_intellectfound1 = true
-            elseif arg1 == TB_spiritline then
-                TB_spiritfound = true
-            elseif arg1 == TB_spiritline1 then
-                TB_spiritfound1 = true
-            elseif arg1 == TB_spiritline2 then
-                TB_spiritfound2 = true
-            end
-		end
-
-	elseif(event == "CHAT_MSG_SPELL_PERIODIC_SELF_DAMAGE") then
-		if (englishClass == "WARRIOR") then
-			if (string.find(arg1, TB_dw)) then
-				TBAbility = TB_GUI_DW;
-			end
-		end
+	if(event == "COMBAT_LOG_EVENT_UNFILTERED") then
+    local timestamp, subevent, hideCaster, sourceGUID, sourceName, sourceFlags, sourceFlags2, destGUID, destName, destFlags, destFlags2, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12 = CombatLogGetCurrentEventInfo()
+    
+    if (sourceName ~= UnitName("player")) then
+      return
+    end
+    
+    if TB_debug then
+      print(CombatLogGetCurrentEventInfo())
+    end
+    
+    if not starts_with(subevent, "SPELL") then
+      return
+    end
+    
+    local spellName = a2
+    
+    if ends_with(subevent, "_MISSED") then
+      if (englishClass == "WARRIOR") then
+        if (spellName == TB_tauntName) then 									-- Checks if your taunt was resisted
+          TBAbility = TB_GUI_Taunt;
+        elseif (spellName == TB_mbName) then			-- Checks if the name is "Mocking Blow"
+          TBAbility = TB_GUI_MB;
+        end
+        
+      elseif (englishClass == "DRUID") then
+        if (spellName == TB_growlName) then 									-- Checks if your taunt was resisted
+          TBAbility = TB_GUI_Growl;
+        end
+      end
+    
+    elseif ends_with(subevent, "_AURA_APPLIED") then
+      if (englishClass == "WARRIOR") then
+        if (spellName == TB_swName) then
+          TBAbility = TB_GUI_SW
+        elseif (spellName == TB_lsName) then
+          TBAbility = TB_GUI_LS
+        elseif (spellName == TB_dwName) then
+          TBAbility = TB_GUI_DW
+        elseif (spellName == TB_lgName) then
+          TBAbility = TB_GUI_LG
+        end
+      end
+    
+    elseif ends_with(subevent, "_CAST_SUCCESS") then
+      if (englishClass == "WARRIOR") then
+        if (spellName == TB_csName) then 									-- Checks if it is challenging shout
+          TBAbility = TB_GUI_CS;
+        end
+        
+      elseif (englishClass == "DRUID") then
+        if (spellName == TB_crName) then 									-- Checks if it is challenging roar
+          TBAbility = TB_GUI_CR;
+        end
+      end
+    end
+    
 		
-	elseif (event == "PLAYER_AURAS_CHANGED" or event == "UPDATE_SHAPESHIFT_FORMS") then
+    
+    --[[ -- TODO: AURAS
+      if(TBSettings[TBSettingsCharRealm].MakeMeStupidStatus) then
+              if arg1 == TB_intel or arg1 == TB_intel1 then
+                  TB_intellectfound = true
+              elseif arg1 == TB_intel2 then
+                  TB_intellectfound1 = true
+              elseif arg1 == TB_spiritline then
+                  TB_spiritfound = true
+              elseif arg1 == TB_spiritline1 then
+                  TB_spiritfound1 = true
+              elseif arg1 == TB_spiritline2 then
+                  TB_spiritfound2 = true
+              end
+      end
+    ]]
+		
+	--[[elseif (event == "UNIT_AURA" or event == "UPDATE_SHAPESHIFT_FORMS") then
 		if (TBSettings[TBSettingsCharRealm].MakeMeStupidStatus) then
             if (TB_intellectfound) then
                 CancelPlayerBuff(TB_PlayerBuffByTexture(TB_intellect));
@@ -241,17 +282,21 @@ function TB_OnEvent(event)
 		if (TB_PlayerBuff(TB_salvation)) then		--Look for a buff with "Salvation" in it
 			if (TBSettings[TBSettingsCharRealm].Salvstatus) then
 				if (TBSettings[TBSettingsCharRealm].SalvDefensiveBearstatus) then
-					local _, _, active, _ = GetShapeshiftFormInfo(TB_TankForm);
+					local _, active, _, _ = GetShapeshiftFormInfo(TB_TankForm);
 					if (active) then
-						CancelPlayerBuff(TB_PlayerBuff(TB_salvation));					--Cancel it
+						CancelUnitBuff("player", TB_PlayerBuff(TB_salvation));					--Cancel it
+            --CancelUnitBuff("player", "Blessing of Salvation");					--Cancel it
+            --CancelUnitBuff("player", "Greater Blessing of Salvation");					--Cancel it
 						TB_Sendmsg(TB_output_salvation);
 					end
 				else
-					CancelPlayerBuff(TB_PlayerBuff(TB_salvation));					--Cancel it
+					CancelUnitBuff("player", TB_PlayerBuff(TB_salvation));					--Cancel it
+          --CancelUnitBuff("player", "Blessing of Salvation");					--Cancel it
+          --CancelUnitBuff("player", "Greater Blessing of Salvation");					--Cancel it
 					TB_Sendmsg(TB_output_salvation);
 				end
 			end
-		end
+		end]]
 
 	elseif (event == "VARIABLES_LOADED") then
 		-- load each option, set default if not there
@@ -301,7 +346,12 @@ function TB_OnEvent(event)
 		end
 		if (TBSettings[TBSettingsCharRealm].Announcements[TB_GUI_SW]) then
 			if (TBSettings[TBSettingsCharRealm].Announcements[TB_GUI_SW]["Text"] == 1) then
-				TBSettings[TBSettingsCharRealm].Announcements[TB_GUI_SW]["Text"] = TB_defaultText_sw;				-- Default value for text_sv
+				TBSettings[TBSettingsCharRealm].Announcements[TB_GUI_SW]["Text"] = TB_defaultText_sw;				-- Default value for text_sw
+			end
+		end
+    if (TBSettings[TBSettingsCharRealm].Announcements[TB_GUI_CS]) then
+			if (TBSettings[TBSettingsCharRealm].Announcements[TB_GUI_CS]["Text"] == 1) then
+				TBSettings[TBSettingsCharRealm].Announcements[TB_GUI_CS]["Text"] = TB_defaultText_cs;				-- Default value for text_cs
 			end
 		end
 		if (TBSettings[TBSettingsCharRealm].Announcements[TB_GUI_DW]) then
@@ -317,6 +367,11 @@ function TB_OnEvent(event)
 		if (TBSettings[TBSettingsCharRealm].Announcements[TB_GUI_Growl]) then
 			if (TBSettings[TBSettingsCharRealm].Announcements[TB_GUI_Growl]["Text"] == 1) then
 				TBSettings[TBSettingsCharRealm].Announcements[TB_GUI_Growl]["Text"] = TB_defaultText_g;				-- Default value for text_g
+			end
+		end
+    if (TBSettings[TBSettingsCharRealm].Announcements[TB_GUI_CR]) then
+			if (TBSettings[TBSettingsCharRealm].Announcements[TB_GUI_CR]["Text"] == 1) then
+				TBSettings[TBSettingsCharRealm].Announcements[TB_GUI_CR]["Text"] = TB_defaultText_cr;				-- Default value for text_cr
 			end
 		end
 			
@@ -391,6 +446,15 @@ function TB_SlashCommandHandler( msg )
 			TB_unregister();
 			TB_CheckButton:SetChecked(0);
 		end
+  
+  elseif command == TB_cmd_debug then
+    TB_debug = not TB_debug
+    if TB_debug then
+      TB_Sendmsg(TB_output_debug_on)
+    else
+      TB_Sendmsg(TB_output_debug_off)
+    end
+
 
 	-- Console Command: /TB --
 	elseif (command == "") then
@@ -415,14 +479,14 @@ function TB_Announce(TBAbility, TBTest)
 			if (TBText) then
 				if (UnitName("target")) then
 					Icon = "";
-					if GetRaidTargetIndex("target")==1 then Icon = " STAR "; end
-					if GetRaidTargetIndex("target")==2 then Icon = " CIRCLE "; end
-					if GetRaidTargetIndex("target")==3 then Icon = " DIAMOND "; end
-					if GetRaidTargetIndex("target")==4 then Icon = " TRIANGLE "; end
-					if GetRaidTargetIndex("target")==5 then Icon = " MOON "; end
-					if GetRaidTargetIndex("target")==6 then Icon = " SQUARE "; end
-					if GetRaidTargetIndex("target")==7 then Icon = " CROSS "; end
-					if GetRaidTargetIndex("target")==8 then Icon = " SKULL "; end
+					if GetRaidTargetIndex("target")==1 then Icon = " {rt1} "; end
+					if GetRaidTargetIndex("target")==2 then Icon = " {rt2} "; end
+					if GetRaidTargetIndex("target")==3 then Icon = " {rt3} "; end
+					if GetRaidTargetIndex("target")==4 then Icon = " {rt4} "; end
+					if GetRaidTargetIndex("target")==5 then Icon = " {rt5} "; end
+					if GetRaidTargetIndex("target")==6 then Icon = " {rt6} "; end
+					if GetRaidTargetIndex("target")==7 then Icon = " {rt7} "; end
+					if GetRaidTargetIndex("target")==8 then Icon = " {rt8} "; end
 
 					TBText = string.gsub(TBText, "$tn", Icon .. UnitName("target") .. Icon);
 				else
@@ -449,6 +513,8 @@ function TB_Announce(TBAbility, TBTest)
 		elseif (TBAbility == TB_GUI_LG) then
 			TBText = string.gsub(TBSettings[TBSettingsCharRealm].Announcements[TBAbility]["Text"], "$sec", "20");
 			TBText = string.gsub(TBSettings[TBSettingsCharRealm].Announcements[TBAbility]["Text"], "$hp", math.floor((UnitHealthMax("player")/115)*15));
+		elseif (TBAbility == TB_GUI_CS or TBAbility == TB_GUI_CR) then
+				TBText = string.gsub(TBSettings[TBSettingsCharRealm].Announcements[TBAbility]["Text"], "$sec", "6");
 		end
 		
 		if (TBTest) then
@@ -456,7 +522,7 @@ function TB_Announce(TBAbility, TBTest)
 		end
 
 		local TB_grp = TB_GUI_Alone;
-		if  GetNumPartyMembers() > 0 then
+		if  GetNumSubgroupMembers() > 0 then
 			if (UnitInRaid("player")) then
 				TB_grp = TB_GUI_Raid;
 			elseif (UnitInParty("player")) then
@@ -489,28 +555,11 @@ function TB_Announce(TBAbility, TBTest)
 end
 
 function TB_register()
-	TankBuddyFrame:RegisterEvent("CHAT_MSG_SPELL_SELF_DAMAGE");
-	TankBuddyFrame:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_SELF_BUFFS");
-	TankBuddyFrame:RegisterEvent("CHAT_MSG_SPELL_PERIODIC_SELF_DAMAGE");
-	TankBuddyFrame:RegisterEvent("PLAYER_AURAS_CHANGED");
-	
-	if (TBSettings[TBSettingsCharRealm].Salvstatus) then	
-		if (TBSettings[TBSettingsCharRealm].SalvDefensiveBearstatus) then
-			TankBuddyFrame:RegisterEvent("UPDATE_SHAPESHIFT_FORMS");
-		end
-	end
+	TankBuddyFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
 end
 
 function TB_unregister()
-	TankBuddyFrame:UnregisterEvent("CHAT_MSG_SPELL_SELF_DAMAGE");
-	TankBuddyFrame:UnregisterEvent("CHAT_MSG_SPELL_PERIODIC_SELF_BUFFS");
-	TankBuddyFrame:UnregisterEvent("CHAT_MSG_SPELL_PERIODIC_SELF_DAMAGE");
-	TankBuddyFrame:UnregisterEvent("PLAYER_AURAS_CHANGED");
-	if (not TBSettings[TBSettingsCharRealm].Salvstatus) then
-		TankBuddyFrame:UnregisterEvent("UPDATE_SHAPESHIFT_FORMS");
-	elseif (not TBSettings[TBSettingsCharRealm].SalvDefensiveBearstatus) then
-		TankBuddyFrame:UnregisterEvent("UPDATE_SHAPESHIFT_FORMS");
-	end
+	TankBuddyFrame:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
 end
 
 function TB_Sendmsg(msg)
@@ -558,7 +607,7 @@ end
 function TB_CloseCustomChannel()
 	TB_CustomChannelFrame:Hide();
 	if (string.find(TB_EditboxCustom:GetText(), "(%w+)")) then
-		TBSettings[TBSettingsCharRealm].Announcements[TB_Tabs[TankBuddyFrame.selectedTab][1]][TB_Modes[this:GetID()][2]].Channels = TB_EditboxCustom:GetText();
+		TBSettings[TBSettingsCharRealm].Announcements[TB_Tabs[TankBuddyFrame.selectedTab][1]][TB_Modes[self:GetID()][2]].Channels = TB_EditboxCustom:GetText();
 	end
 end
 
@@ -627,13 +676,13 @@ function TB_PlayerBuffByTexture(buff)
 	if j then return j end
 end
 
-function TB_toggleMakeMeStupidStatus()
-    TBSettings[TBSettingsCharRealm].MakeMeStupidStatus = this:GetChecked();
+function TB_toggleMakeMeStupidStatus(self)
+    TBSettings[TBSettingsCharRealm].MakeMeStupidStatus = self:GetChecked();
 end
 
-function TB_toggleSalvStatus()
-	if (this:GetName() == "TB_EnableSalvationCheckButton") then
-		TBSettings[TBSettingsCharRealm].Salvstatus = this:GetChecked();
+function TB_toggleSalvStatus(self)
+	if (self:GetName() == "TB_EnableSalvationCheckButton") then
+		TBSettings[TBSettingsCharRealm].Salvstatus = self:GetChecked();
 		if (TBSettings[TBSettingsCharRealm].Salvstatus) then	--If you want salvation removed
 			if (TB_TankForm) then		-- and you're a druid or a warrior
 				TB_DefensiveBearCheckButton:Enable();
@@ -641,8 +690,8 @@ function TB_toggleSalvStatus()
 		else
 			TB_DefensiveBearCheckButton:Disable();
 		end
-	elseif (this:GetName() == "TB_DefensiveBearCheckButton") then
-		TBSettings[TBSettingsCharRealm].SalvDefensiveBearstatus = this:GetChecked();
+	elseif (self:GetName() == "TB_DefensiveBearCheckButton") then
+		TBSettings[TBSettingsCharRealm].SalvDefensiveBearstatus = self:GetChecked();
 		if (TBSettings[TBSettingsCharRealm].SalvDefensiveBearstatus) then
 			TankBuddyFrame:RegisterEvent("UPDATE_SHAPESHIFT_FORMS");
 		else

@@ -8,7 +8,7 @@
 		</HitRectInsets>
 		<Scripts>
 			<OnClick>
-				TB_Channels_OnClick();
+				TB_Channels_OnClick(self);
 			</OnClick>
 		</Scripts>
 	</CheckButton>
@@ -35,11 +35,11 @@
 		</Layers>
 		<Scripts>
 			<OnClick>
-				TB_Tab_OnClick();
+				TB_Tab_OnClick(nil, self);
 			</OnClick>
 			<OnEnter>
-				GameTooltip:SetOwner(this, "ANCHOR_RIGHT");
-				GameTooltip:SetText(this.tooltiptext);
+				GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+				GameTooltip:SetText(self.tooltiptext);
 			</OnEnter>
 			<OnLeave>
 				GameTooltip:Hide();
@@ -55,28 +55,19 @@
 		<Scripts>
 			<OnLoad>
 				TB_OnLoad();
+        self:RegisterForDrag("LeftButton")
 			</OnLoad>
 			<OnEvent>
 				TB_OnEvent(event);
 			</OnEvent>
-			<OnMouseUp>
-				if ( this.isMoving ) then
-					this:StopMovingOrSizing();
-					this.isMoving = false;
-				end
-			</OnMouseUp>
-			<OnMouseDown>
-				if ( ( ( not this.isLocked ) or ( this.isLocked == 0 ) ) and ( arg1 == "LeftButton" ) ) then
-					this:StartMoving();
-					this.isMoving = true;
-				end
-			</OnMouseDown>
-			<OnHide>
-				if ( this.isMoving ) then
-					this:StopMovingOrSizing();
-					this.isMoving = false;
-				end
-			</OnHide>
+      <OnDragStart>
+       if not self.isLocked then
+        self:StartMoving()
+       end
+      </OnDragStart>
+      <OnDragStop>
+       self:StopMovingOrSizing()
+      </OnDragStop>
 		</Scripts>
 		<Anchors>
 			<Anchor point="CENTER"/>
@@ -163,7 +154,7 @@
 							<OnClick>TB_toggleStatus();</OnClick>
 						</Scripts>
 					</CheckButton>
-					<CheckButton name="TB_EnableMakeMeStupidCheckButton" inherits="OptionsCheckButtonTemplate" checked="true">
+					<CheckButton name="TB_EnableMakeMeStupidCheckButton" inherits="OptionsCheckButtonTemplate" checked="true" hidden="true">
 						<Anchors>
 							<Anchor point="TOPLEFT">
 								<Offset>
@@ -172,10 +163,10 @@
 							</Anchor>
 						</Anchors>
 						<Scripts>
-							<OnClick>TB_toggleMakeMeStupidStatus();</OnClick>
+							<OnClick>TB_toggleMakeMeStupidStatus(self);</OnClick>
 						</Scripts>
 					</CheckButton>
-					<CheckButton name="TB_EnableSalvationCheckButton" inherits="OptionsCheckButtonTemplate" checked="true">
+					<CheckButton name="TB_EnableSalvationCheckButton" inherits="OptionsCheckButtonTemplate" checked="true" hidden="true">
 						<Anchors>
 							<Anchor point="TOPLEFT">
 								<Offset>
@@ -184,10 +175,10 @@
 							</Anchor>
 						</Anchors>
 						<Scripts>
-							<OnClick>TB_toggleSalvStatus();</OnClick>
+							<OnClick>TB_toggleSalvStatus(self);</OnClick>
 						</Scripts>
 					</CheckButton>
-					<CheckButton name="TB_DefensiveBearCheckButton" inherits="OptionsCheckButtonTemplate" checked="true">
+					<CheckButton name="TB_DefensiveBearCheckButton" inherits="OptionsCheckButtonTemplate" checked="true" hidden="true">
 						<Size>
 							<AbsDimension x="25" y="25"/>
 						</Size>
@@ -199,7 +190,7 @@
 							</Anchor>
 						</Anchors>
 						<Scripts>
-							<OnClick>TB_toggleSalvStatus();</OnClick>
+							<OnClick>TB_toggleSalvStatus(self);</OnClick>
 						</Scripts>
 					</CheckButton>
 				</Frames>
@@ -214,7 +205,7 @@
 								</Anchor>
 							</Anchors>
 						</FontString>
-						<FontString name="EnableMakeMeStupidText" inherits="GameFontNormalSmall" text="TB_GUI_EnableMakeMeStupid">
+						<FontString name="EnableMakeMeStupidText" inherits="GameFontNormalSmall" text="TB_GUI_EnableMakeMeStupid" hidden="true">
 							<Anchors>
 								<Anchor point="TOPLEFT">
 									<Offset>
@@ -223,7 +214,7 @@
 								</Anchor>
 							</Anchors>
 						</FontString>
-						<FontString name="EnableSalvText" inherits="GameFontNormalSmall" text="TB_GUI_EnableSalvation">
+						<FontString name="EnableSalvText" inherits="GameFontNormalSmall" text="TB_GUI_EnableSalvation" hidden="true">
 							<Anchors>
 								<Anchor point="TOPLEFT">
 									<Offset>
@@ -232,7 +223,7 @@
 								</Anchor>
 							</Anchors>
 						</FontString>
-						<FontString name="SalvDefensiveBearText" inherits="GameFontNormalSmall" text="TB_GUI_SalvationDefensive">
+						<FontString name="SalvDefensiveBearText" inherits="GameFontNormalSmall" text="TB_GUI_SalvationDefensive" hidden="true">
 							<Anchors>
 								<Anchor point="TOPLEFT">
 									<Offset>
@@ -330,7 +321,7 @@
 				</Anchors>
 			</CheckButton>
 
-			<Frame name="TB_OtherOptions" frameStrata="MEDIUM" toplevel="true" enableMouse="true" movable="true" parent="TankBuddyFrame">
+			<Frame name="TB_OtherOptions" frameStrata="MEDIUM" toplevel="true" enableMouse="true" parent="TankBuddyFrame">
 				<Size>
 					<AbsDimension x="384" y="1"/>
 				</Size>
@@ -342,7 +333,7 @@
 					</Anchor>
 				</Anchors>
 				<frames>
-					<Frame name="TB_CheckButtons" frameStrata="BACKGROUND" toplevel="true" enableMouse="true" movable="true">
+					<Frame name="TB_CheckButtons" frameStrata="LOW" toplevel="true" enableMouse="true">
 						<Size>
 							<AbsDimension x="360" y="300"/>
 						</Size>
